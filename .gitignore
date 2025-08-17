@@ -1,0 +1,24 @@
+autom4te.cache/
+build-aux/
+Makefile.in
+Makefile
+src/.deps/
+src/.dirstamp
+src/stamp-h1
+src/tests/.deps/
+src/tests/.dirstamp
+src/config-gbsc.h
+src/config-gbsc.h.in
+data/
+tmp/
+vgcore.*
+/output/
+doc/Evaluation_DFG\ AN\ 735_6_1\ Stellungnahme.pdf
+build/
+configure
+configure~
+install-root/
+src/config-gbsc.h.in~
+
+
+
