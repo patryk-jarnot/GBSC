@@ -1,5 +1,5 @@
 AC_PREREQ([2.69])
-AC_INIT([gbsc], [0.1], [patryk.jarnot@gmail.com])
+AC_INIT([gbsc], [1.0.0], [patryk.jarnot@gmail.com])
 AC_CONFIG_SRCDIR([src/gbsc.cpp])
 AC_CONFIG_HEADERS([src/config-gbsc.h])
 AC_CONFIG_AUX_DIR([build-aux])

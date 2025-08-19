@@ -9,7 +9,7 @@ src/tests/.deps/
 src/tests/.dirstamp
 src/config-gbsc.h
 src/config-gbsc.h.in
-data/
+/data/
 tmp/
 vgcore.*
 /output/
@@ -19,6 +19,7 @@ configure
 configure~
 install-root/
 src/config-gbsc.h.in~
+/src/tests/data/gbsc_pfam_clusters
 
 
 
