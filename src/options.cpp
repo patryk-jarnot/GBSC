@@ -159,7 +159,6 @@ void Options::showSearchHelp() {
     cout << "                               0 - Human.\n";
     cout << "                               1 - JSON\n";
     cout << "      --max-hit-count=COUNT  Maximal number of hits in output.\n";
-    cout << "      --clusters-dir=DIR     Input directory for clusters.\n";
     cout << "\n";
     showAlgorithmParameters();
     cout << "\n";

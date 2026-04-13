@@ -98,7 +98,8 @@ int main(int argc, char **argv)
 //		cout << "searching...\n";
 		similaritysearch::Search search(&opt, input, output);
 
-		if (opt.getThreadCount() >= 0) {
+//		DEBUG(opt.getThreadCount());
+		if (opt.getThreadCount() > 1) {
 			search.scanFastaThreads(queryInput, opt.getThreadCount());
 		}
 		else {

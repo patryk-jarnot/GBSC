@@ -84,7 +84,7 @@ void Search::scanFasta(std::istream *queryStream) {
 }
 
 
-int scanFasta_thread(Search *search, std::vector<std::pair<fasta::Sequence, std::vector<graph::Cycle> > > input_sequences, fasta::Sequence ds, int iweightThreshold, int ilifetime, bool iincludeOrphanNodes, int imaxGapLen, int iminNodeCount, int imaxNodeCount, bool iisFilterHomopolymers, Alphabet *ialphabetReduction) {
+int scanFasta_thread(Search *search, std::vector<std::pair<fasta::Sequence, std::vector<graph::Cycle> > > *input_sequences, fasta::Sequence ds, int iweightThreshold, int ilifetime, bool iincludeOrphanNodes, int imaxGapLen, int iminNodeCount, int imaxNodeCount, bool iisFilterHomopolymers, Alphabet *ialphabetReduction) {
 	Gbsc gbsc;
 	Postprocess pp;
 
@@ -95,7 +95,7 @@ int scanFasta_thread(Search *search, std::vector<std::pair<fasta::Sequence, std:
 	pp.minStrLengthByNodeCount(databaseCycles, iweightThreshold);
 
 //	search->findSimilarities(queryCycles, databaseCycles, qs, ds);
-	for (auto seq_data : input_sequences) {
+	for (auto seq_data : *input_sequences) {
 		search->findSimilarities(seq_data.second, databaseCycles, seq_data.first, ds);
 	}
 	return 0;
@@ -127,6 +127,8 @@ void Search::scanFastaThreads(std::istream *queryStream, int ithreadCount) {
 	}
 
 
+//	DEBUG(ithreadCount);
+//	int i = 0;
 	ThreadPool tp(ithreadCount);
 	while (databaseFr.hasNextSequence()) {
 		while (tp.getTasksCount() > (20 * ithreadCount)) std::this_thread::sleep_for(std::chrono::microseconds(500));
@@ -135,7 +137,9 @@ void Search::scanFastaThreads(std::istream *queryStream, int ithreadCount) {
 			continue;
 		}
 
-		std::future<int> x = tp.enqueue(scanFasta_thread, this, input_sequences, *ds, opt->getWeightThreshold(), opt->getLifetime(), opt->isIncludeOrphanNodes(), opt->getMaxGapLength(), opt->getMinNodeCount(), opt->getMaxNodeCount(), opt->isFilterHomopolymers(), &alphabetReduction);
+		std::future<int> x = tp.enqueue(scanFasta_thread, this, &input_sequences, *ds, opt->getWeightThreshold(), opt->getLifetime(), opt->isIncludeOrphanNodes(), opt->getMaxGapLength(), opt->getMinNodeCount(), opt->getMaxNodeCount(), opt->isFilterHomopolymers(), &alphabetReduction);
+//		i++;
+//		cout << i << endl;
 	}
 	output::print_search_results(output, opt->getSearchOutputFormat(), getResults(), opt->getMaxHitCount());
 }
