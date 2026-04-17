@@ -77,7 +77,7 @@ void Search::scanFasta(std::istream *queryStream) {
 		pp.minStrLengthByNodeCount(databaseCycles, opt->getWeightThreshold());
 
 		for (auto seq_data : input_sequences) {
-			findSimilarities(seq_data.second, databaseCycles, seq_data.first, *ds);
+			findSimilarities(&(seq_data.second), &databaseCycles, seq_data.first, *ds);
 		}
 	}
 	output::print_search_results(output, opt->getSearchOutputFormat(), getResults(), opt->getMaxHitCount());
@@ -96,7 +96,7 @@ int scanFasta_thread(Search *search, std::vector<std::pair<fasta::Sequence, std:
 
 //	search->findSimilarities(queryCycles, databaseCycles, qs, ds);
 	for (auto seq_data : *input_sequences) {
-		search->findSimilarities(seq_data.second, databaseCycles, seq_data.first, ds);
+		search->findSimilarities(&(seq_data.second), &databaseCycles, seq_data.first, ds);
 	}
 	return 0;
 }
@@ -166,8 +166,8 @@ float calculate_score(graph::Cycle &queryCycle, graph::Cycle &hitCycle) {
 	return (float)(total_weight_score + len_score) / (total_q_weight + qlen);
 }
 
-void Search::findSimilarities(std::vector<graph::Cycle> queryCycles, std::vector<graph::Cycle> databaseCycles, fasta::Sequence querySequence, fasta::Sequence hitSequence) {
-	for (auto qc : queryCycles) {
+void Search::findSimilarities(std::vector<graph::Cycle> *queryCycles, std::vector<graph::Cycle> *databaseCycles, fasta::Sequence querySequence, fasta::Sequence hitSequence) {
+	for (auto qc : *queryCycles) {
 		search_result_query_t searchResultQuery;
 		searchResultQuery.queryHeader = querySequence.header + "|" + std::to_string(qc.getBegin()) + "|" + std::to_string(qc.getEnd()) + "|" + qc.to_string();
 		searchResultQuery.querySequence = querySequence.sequence.substr(qc.getBegin()-1, qc.getEnd() - qc.getBegin()+1);
@@ -175,7 +175,7 @@ void Search::findSimilarities(std::vector<graph::Cycle> queryCycles, std::vector
 		searchResultQuery.end = qc.getEnd();
 		searchResultQuery.queryCycle = qc;
 
-		for (auto dc : databaseCycles) {
+		for (auto dc : *databaseCycles) {
 
 			// is graph structure the same?
 			if (qc.getGraph().to_string().compare(dc.getGraph().to_string()) == 0) {
