@@ -77,7 +77,7 @@ void Search::scanFasta(std::istream *queryStream) {
 		pp.minStrLengthByNodeCount(databaseCycles, opt->getWeightThreshold());
 
 		for (auto seq_data : input_sequences) {
-			findSimilarities(&(seq_data.second), &databaseCycles, seq_data.first, *ds);
+			findSimilarities(&(seq_data.second), &databaseCycles, &(seq_data.first), ds);
 		}
 	}
 	output::print_search_results(output, opt->getSearchOutputFormat(), getResults(), opt->getMaxHitCount());
@@ -96,7 +96,7 @@ int scanFasta_thread(Search *search, std::vector<std::pair<fasta::Sequence, std:
 
 //	search->findSimilarities(queryCycles, databaseCycles, qs, ds);
 	for (auto seq_data : *input_sequences) {
-		search->findSimilarities(&(seq_data.second), &databaseCycles, seq_data.first, ds);
+		search->findSimilarities(&(seq_data.second), &databaseCycles, &(seq_data.first), &ds);
 	}
 	return 0;
 }
@@ -166,11 +166,11 @@ float calculate_score(graph::Cycle &queryCycle, graph::Cycle &hitCycle) {
 	return (float)(total_weight_score + len_score) / (total_q_weight + qlen);
 }
 
-void Search::findSimilarities(std::vector<graph::Cycle> *queryCycles, std::vector<graph::Cycle> *databaseCycles, fasta::Sequence querySequence, fasta::Sequence hitSequence) {
+void Search::findSimilarities(std::vector<graph::Cycle> *queryCycles, std::vector<graph::Cycle> *databaseCycles, fasta::Sequence *querySequence, fasta::Sequence *hitSequence) {
 	for (auto qc : *queryCycles) {
 		search_result_query_t searchResultQuery;
-		searchResultQuery.queryHeader = querySequence.header + "|" + std::to_string(qc.getBegin()) + "|" + std::to_string(qc.getEnd()) + "|" + qc.to_string();
-		searchResultQuery.querySequence = querySequence.sequence.substr(qc.getBegin()-1, qc.getEnd() - qc.getBegin()+1);
+		searchResultQuery.queryHeader = querySequence->header + "|" + std::to_string(qc.getBegin()) + "|" + std::to_string(qc.getEnd()) + "|" + qc.to_string();
+		searchResultQuery.querySequence = querySequence->sequence.substr(qc.getBegin()-1, qc.getEnd() - qc.getBegin()+1);
 		searchResultQuery.begin = qc.getBegin();
 		searchResultQuery.end = qc.getEnd();
 		searchResultQuery.queryCycle = qc;
@@ -182,8 +182,8 @@ void Search::findSimilarities(std::vector<graph::Cycle> *queryCycles, std::vecto
 				search_result_hit_t searchResultHit;
 
 //				searchResultHit.hitHeader = hitSequence.header;
-				searchResultHit.hitHeader = hitSequence.header + "|" + std::to_string(dc.getBegin()) + "|" + std::to_string(dc.getEnd()) + "|" + dc.to_string();
-				searchResultHit.hitSequence = hitSequence.sequence.substr(dc.getBegin()-1, dc.getEnd() - dc.getBegin()+1);
+				searchResultHit.hitHeader = hitSequence->header + "|" + std::to_string(dc.getBegin()) + "|" + std::to_string(dc.getEnd()) + "|" + dc.to_string();
+				searchResultHit.hitSequence = hitSequence->sequence.substr(dc.getBegin()-1, dc.getEnd() - dc.getBegin()+1);
 				searchResultHit.begin = dc.getBegin();
 				searchResultHit.end = dc.getEnd();
 				searchResultHit.hitCycle = dc;

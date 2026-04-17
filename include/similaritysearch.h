@@ -56,7 +56,7 @@ public:
 
 	void scanFasta(std::istream *queryStream);
 	void scanFastaThreads(std::istream *queryStream, int ithreadCount);
-	void findSimilarities(std::vector<graph::Cycle> *queryCycles, std::vector<graph::Cycle> *databaseCycles, fasta::Sequence querySequence, fasta::Sequence hitSequence);
+	void findSimilarities(std::vector<graph::Cycle> *queryCycles, std::vector<graph::Cycle> *databaseCycles, fasta::Sequence *querySequence, fasta::Sequence *hitSequence);
 
 	std::vector<search_result_query_t> getResults() {
 		std::vector<search_result_query_t> v;
