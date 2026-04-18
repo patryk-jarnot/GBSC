@@ -201,15 +201,15 @@ void Search::findSimilarities(std::vector<graph::Cycle> *queryCycles, std::vecto
 
 		if (searchResultQuery.hits.size() > 0) {
 
-			std::sort(searchResultQuery.hits.rbegin(), searchResultQuery.hits.rend());
 			int hit_count = limit < 0 ? (int)searchResultQuery.hits.size() : std::min((int)searchResultQuery.hits.size(), limit);
-			searchResultQuery.hits.erase(searchResultQuery.hits.begin() + hit_count, searchResultQuery.hits.end());
 
 			bool added = false;
 			hash<string> hasher;
 			size_t hashed_header = hasher(searchResultQuery.queryHeader);
 
 			if (results.find(searchResultQuery.queryHeader) == results.end()) {
+				std::sort(searchResultQuery.hits.rbegin(), searchResultQuery.hits.rend());
+				searchResultQuery.hits.erase(searchResultQuery.hits.begin() + hit_count, searchResultQuery.hits.end());
 				std::lock_guard<std::mutex> guard(results_mutex);
 				if (results.find(searchResultQuery.queryHeader) == results.end()) {
 					results[searchResultQuery.queryHeader] = searchResultQuery;
