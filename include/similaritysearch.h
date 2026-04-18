@@ -48,6 +48,7 @@ public:
 	std::vector<search_result_hit_t> hits;
 };
 
+#define RESULT_MUTEXES_SIZE 400
 
 class Search {
 public:
@@ -56,7 +57,7 @@ public:
 
 	void scanFasta(std::istream *queryStream);
 	void scanFastaThreads(std::istream *queryStream, int ithreadCount);
-	void findSimilarities(std::vector<graph::Cycle> *queryCycles, std::vector<graph::Cycle> *databaseCycles, fasta::Sequence *querySequence, fasta::Sequence *hitSequence);
+	void findSimilarities(std::vector<graph::Cycle> *queryCycles, std::vector<graph::Cycle> *databaseCycles, fasta::Sequence *querySequence, fasta::Sequence *hitSequence, int limit);
 
 	std::vector<search_result_query_t> getResults() {
 		std::vector<search_result_query_t> v;
@@ -74,6 +75,7 @@ private:
 	std::istream *input;
 	std::ostream *output;
 	std::mutex results_mutex;
+	std::mutex result_mutexes[RESULT_MUTEXES_SIZE];
 
 };
 

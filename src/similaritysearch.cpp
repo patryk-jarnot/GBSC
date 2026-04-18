@@ -13,6 +13,8 @@
 #include <sstream>
 #include <thread>
 #include <chrono>
+#include <algorithm>
+#include <functional>
 
 using namespace similaritysearch;
 using namespace postprocess;
@@ -77,14 +79,14 @@ void Search::scanFasta(std::istream *queryStream) {
 		pp.minStrLengthByNodeCount(databaseCycles, opt->getWeightThreshold());
 
 		for (auto seq_data : input_sequences) {
-			findSimilarities(&(seq_data.second), &databaseCycles, &(seq_data.first), ds);
+			findSimilarities(&(seq_data.second), &databaseCycles, &(seq_data.first), ds, opt->getMaxHitCount());
 		}
 	}
 	output::print_search_results(output, opt->getSearchOutputFormat(), getResults(), opt->getMaxHitCount());
 }
 
 
-int scanFasta_thread(Search *search, std::vector<std::pair<fasta::Sequence, std::vector<graph::Cycle> > > *input_sequences, fasta::Sequence ds, int iweightThreshold, int ilifetime, bool iincludeOrphanNodes, int imaxGapLen, int iminNodeCount, int imaxNodeCount, bool iisFilterHomopolymers, Alphabet *ialphabetReduction) {
+int scanFasta_thread(Search *search, std::vector<std::pair<fasta::Sequence, std::vector<graph::Cycle> > > *input_sequences, fasta::Sequence ds, int iweightThreshold, int ilifetime, bool iincludeOrphanNodes, int imaxGapLen, int iminNodeCount, int imaxNodeCount, bool iisFilterHomopolymers, Alphabet *ialphabetReduction, int maxHitCount) {
 	Gbsc gbsc;
 	Postprocess pp;
 
@@ -96,7 +98,7 @@ int scanFasta_thread(Search *search, std::vector<std::pair<fasta::Sequence, std:
 
 //	search->findSimilarities(queryCycles, databaseCycles, qs, ds);
 	for (auto seq_data : *input_sequences) {
-		search->findSimilarities(&(seq_data.second), &databaseCycles, &(seq_data.first), &ds);
+		search->findSimilarities(&(seq_data.second), &databaseCycles, &(seq_data.first), &ds, maxHitCount);
 	}
 	return 0;
 }
@@ -137,7 +139,7 @@ void Search::scanFastaThreads(std::istream *queryStream, int ithreadCount) {
 			continue;
 		}
 
-		std::future<int> x = tp.enqueue(scanFasta_thread, this, &input_sequences, *ds, opt->getWeightThreshold(), opt->getLifetime(), opt->isIncludeOrphanNodes(), opt->getMaxGapLength(), opt->getMinNodeCount(), opt->getMaxNodeCount(), opt->isFilterHomopolymers(), &alphabetReduction);
+		std::future<int> x = tp.enqueue(scanFasta_thread, this, &input_sequences, *ds, opt->getWeightThreshold(), opt->getLifetime(), opt->isIncludeOrphanNodes(), opt->getMaxGapLength(), opt->getMinNodeCount(), opt->getMaxNodeCount(), opt->isFilterHomopolymers(), &alphabetReduction, opt->getMaxHitCount());
 //		i++;
 //		cout << i << endl;
 	}
@@ -166,7 +168,7 @@ float calculate_score(graph::Cycle &queryCycle, graph::Cycle &hitCycle) {
 	return (float)(total_weight_score + len_score) / (total_q_weight + qlen);
 }
 
-void Search::findSimilarities(std::vector<graph::Cycle> *queryCycles, std::vector<graph::Cycle> *databaseCycles, fasta::Sequence *querySequence, fasta::Sequence *hitSequence) {
+void Search::findSimilarities(std::vector<graph::Cycle> *queryCycles, std::vector<graph::Cycle> *databaseCycles, fasta::Sequence *querySequence, fasta::Sequence *hitSequence, int limit) {
 	for (auto qc : *queryCycles) {
 		search_result_query_t searchResultQuery;
 		searchResultQuery.queryHeader = querySequence->header + "|" + std::to_string(qc.getBegin()) + "|" + std::to_string(qc.getEnd()) + "|" + qc.to_string();
@@ -196,16 +198,34 @@ void Search::findSimilarities(std::vector<graph::Cycle> *queryCycles, std::vecto
 				searchResultQuery.hits.push_back(searchResultHit);
 			}
 		}
+
 		if (searchResultQuery.hits.size() > 0) {
-//			results.push_back(searchResultQuery);
-			std::lock_guard<std::mutex> guard(results_mutex);
+
+			std::sort(searchResultQuery.hits.rbegin(), searchResultQuery.hits.rend());
+			int hit_count = limit < 0 ? (int)searchResultQuery.hits.size() : std::min((int)searchResultQuery.hits.size(), limit);
+			searchResultQuery.hits.erase(searchResultQuery.hits.begin() + hit_count, searchResultQuery.hits.end());
+
+			bool added = false;
+			hash<string> hasher;
+			size_t hashed_header = hasher(searchResultQuery.queryHeader);
 
 			if (results.find(searchResultQuery.queryHeader) == results.end()) {
-				results[searchResultQuery.queryHeader] = searchResultQuery;
+				std::lock_guard<std::mutex> guard(results_mutex);
+				if (results.find(searchResultQuery.queryHeader) == results.end()) {
+					results[searchResultQuery.queryHeader] = searchResultQuery;
+					added = true;
+				}
 			}
-			else {
+
+			if (added == false) {
+				auto result_it = &(results[searchResultQuery.queryHeader]);
+				std::lock_guard<std::mutex> guard(result_mutexes[hashed_header % RESULT_MUTEXES_SIZE]);
 				for (auto hit : searchResultQuery.hits) {
-					results[searchResultQuery.queryHeader].hits.push_back(hit);
+					result_it->hits.push_back(hit);
+				}
+				if (result_it->hits.size() > hit_count) {
+					std::sort(result_it->hits.rbegin(), result_it->hits.rend());
+					result_it->hits.erase(result_it->hits.begin() + hit_count, result_it->hits.end());
 				}
 			}
 		}
