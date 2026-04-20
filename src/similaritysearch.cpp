@@ -201,16 +201,16 @@ void Search::findSimilarities(std::vector<graph::Cycle> *queryCycles, std::vecto
 
 		if (searchResultQuery.hits.size() > 0) {
 
-			int hit_count = limit < 0 ? (int)searchResultQuery.hits.size() : std::min((int)searchResultQuery.hits.size(), limit);
 
 			bool added = false;
 			hash<string> hasher;
 			size_t hashed_header = hasher(searchResultQuery.queryHeader);
 
 			if (results.find(searchResultQuery.queryHeader) == results.end()) {
-				std::sort(searchResultQuery.hits.rbegin(), searchResultQuery.hits.rend());
-				searchResultQuery.hits.erase(searchResultQuery.hits.begin() + hit_count, searchResultQuery.hits.end());
 				std::lock_guard<std::mutex> guard(results_mutex);
+				std::sort(searchResultQuery.hits.rbegin(), searchResultQuery.hits.rend());
+				int hit_count = limit < 0 ? (int)searchResultQuery.hits.size() : std::min((int)searchResultQuery.hits.size(), limit);
+				searchResultQuery.hits.erase(searchResultQuery.hits.begin() + hit_count, searchResultQuery.hits.end());
 				if (results.find(searchResultQuery.queryHeader) == results.end()) {
 					results[searchResultQuery.queryHeader] = searchResultQuery;
 					added = true;
@@ -223,6 +223,7 @@ void Search::findSimilarities(std::vector<graph::Cycle> *queryCycles, std::vecto
 				for (auto hit : searchResultQuery.hits) {
 					result_it->hits.push_back(hit);
 				}
+				int hit_count = limit < 0 ? (int)result_it->hits.size() : std::min((int)result_it->hits.size(), limit);
 				if (result_it->hits.size() > hit_count) {
 					std::sort(result_it->hits.rbegin(), result_it->hits.rend());
 					result_it->hits.erase(result_it->hits.begin() + hit_count, result_it->hits.end());
