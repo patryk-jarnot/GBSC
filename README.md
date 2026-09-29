@@ -11,7 +11,7 @@ GBSC has the following build dependencies:
 
 ## Build release version
 
-[Download the latest release version](https://github.com/patryk-jarnot/gbsc/releases/download/v1.0.0/gbsc-1.0.0.tar.gz)
+[Download the latest release version](https://github.com/patryk-jarnot/gbsc/releases/download/v1.0.1/gbsc-1.0.1.tar.gz)
 
 Extract the archive, enter the directory and execute the following commands:
 

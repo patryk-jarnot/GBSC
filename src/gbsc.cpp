@@ -94,6 +94,7 @@ void Gbsc::handleStrsFromNodes(std::vector<graph::Node> *ionodes,
 				foundNodes.push_back((*ionodes)[i]);
 			}
 			ionodes->erase(ionodes->begin() + i);
+            i--;
 		}
 	}
 }
@@ -111,6 +112,7 @@ void Gbsc::handleStrsFromEdges(std::vector<graph::Edge> *ioedges,
 				foundEdges.push_back((*ioedges)[i]);
 			}
 			ioedges->erase(ioedges->begin() + i);
+            i--;
 		}
 	}
 }
