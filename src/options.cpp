@@ -5,6 +5,7 @@
  *      Author: pjarnot
  */
 
+#include "config-gbsc.h"
 #include "include/options.h"
 #include "include/debug.h"
 
@@ -195,13 +196,14 @@ int Options::parseOptions(int argc, char **argv)
 		return -1;
     }
 
+    if (argc >= 2 && (strcmp(argv[1], "--version") == 0)) {
+		cout << PACKAGE_STRING;
+		return -1;
+    }
+
     methodMode = readMode(argv[1]);
 
     if (methodMode == MethodModes::NONE) {
-		showHelp();
-		return -1;
-    }
-    if (argc > 2 && (strcmp(argv[2], "help") == 0)) {
 		showHelp();
 		return -1;
     }
@@ -262,7 +264,7 @@ int Options::parseIdentifyOptions(int argc, char **argv) {
         	}
         	else if (strcmp(long_options[option_index].name, "version") == 0)
         	{
-        		cout << "version: 0.0.1";
+				cout << PACKAGE_STRING;
         		return -1;
         	}
         	else if (strcmp(long_options[option_index].name, "identify-output-format") == 0)
@@ -368,7 +370,7 @@ int Options::parseClusterOptions(int argc, char **argv) {
         	}
         	else if (strcmp(long_options[option_index].name, "version") == 0)
         	{
-        		cout << "version: 0.0.1";
+				cout << PACKAGE_STRING;
         		return -1;
         	}
         	else if (strcmp(long_options[option_index].name, "clusters-dir") == 0)
@@ -477,7 +479,7 @@ int Options::parseSearchOptions(int argc, char **argv) {
         	}
         	else if (strcmp(long_options[option_index].name, "version") == 0)
         	{
-        		cout << "version: 0.0.1";
+				cout << PACKAGE_STRING;
         		return -1;
         	}
         	else if (strcmp(long_options[option_index].name, "clusters-dir") == 0)
